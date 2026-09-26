@@ -9,9 +9,13 @@ bazel_dep(name = "rules_zig", version = "0.16.0")
 bazel_dep(name = "rules_rust", version = "0.74.0")
 bazel_dep(name = "platforms", version = "1.1.0")
 bazel_dep(name = "zml")
+# The pinned ZML lock points at an apt.llvm.org snapshot of
+# llvm-libunwind1 for arm64 that has already been deleted.
 git_override(
     module_name = "zml",
     commit = "e1356ee4edbac0548d7d25ad6590841b5cd9293b",
+    patches = ["//third_party:zml_libunwind_arm64.patch"],
+    patch_strip = 1,
     remote = "https://github.com/zml/zml.git",
 )
 
