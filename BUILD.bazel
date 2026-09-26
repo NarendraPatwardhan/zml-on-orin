@@ -1,0 +1,30 @@
+load("@rules_cc//cc:cc_import.bzl", "cc_import")
+load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_zig//zig:defs.bzl", "zig_shared_library")
+
+zig_shared_library(
+    name = "engine",
+    main = "zig/engine.zig",
+    srcs = glob(["zig/**/*.zig"]),
+    deps = [
+        "@zml//bazel",
+        "@zml//zml",
+    ],
+)
+
+cc_import(
+    name = "engine_import",
+    shared_library = ":engine",
+)
+
+rust_binary(
+    name = "zml_on_arm64",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    edition = "2024",
+    data = [":engine"],
+    deps = [
+        ":engine_import",
+        "@crates//:clap",
+    ],
+)

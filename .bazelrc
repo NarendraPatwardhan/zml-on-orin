@@ -1,0 +1,73 @@
+startup         --digest_function=blake3
+
+common          --experimental_repo_remote_exec
+common          --enable_platform_specific_config
+common          --host_compilation_mode=opt
+common          --@rules_zig//zig/settings:host_mode=release_safe
+common          --copt='-w'
+common          --host_copt='-w'
+common          --cxxopt='-std=c++17'
+common          --host_cxxopt='-std=c++17'
+common          --enable_runfiles
+common          --@rules_python//python/config_settings:bootstrap_impl=script
+common          --experimental_check_output_files=false
+common          --compilation_mode=opt
+common          --experimental_cc_shared_library
+common          --incompatible_use_cc_configure_from_rules_cc
+common          --incompatible_autoload_externally=+@rules_cc,+@rules_python,+@rules_shell,+@rules_java
+common          --experimental_platform_in_output_dir
+common          --compiler=clang
+common          --incompatible_disallow_empty_glob=false
+common          --@rules_zig//zig/settings:use_cc_common_link=true
+common          --@rules_zig//zig/settings:zigopt=-fllvm
+common          --@rules_zig//zig/settings:use_standalone_translate_c=True
+common          --@llvm//config:experimental_stub_libgcc_s=true
+common          --@rules_cc//cc/toolchains/args/archiver_flags:use_libtool_on_macos=false
+common          --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+common          --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+common          --macos_minimum_os=13.0
+
+# aarch64 CUDA binary. ZML publishes no Linux aarch64 CPU plugin.
+common          --platforms=@zml//platforms:linux_arm64
+common          --@zml//platforms:cuda=true
+common          --@zml//platforms:cpu=false
+
+common:linux    --copt=-fPIC
+
+build           --worker_sandboxing
+build           --experimental_inmemory_sandbox_stashes
+build:linux     --sandbox_add_mount_pair=/tmp
+build:linux     --sandbox_writable_path=/tmp
+build:linux     --sandbox_add_mount_pair=/var/tmp
+build:linux     --sandbox_writable_path=/var/tmp
+
+test            --test_output=errors
+
+common:release  --compilation_mode=opt
+common:release  --copt=-Ofast
+common:release  --strip=always
+common:release  --@rules_zig//zig/settings:mode=release_safe
+
+common:debug    --compilation_mode=opt
+common:debug    --@rules_zig//zig/settings:mode=debug
+common:debug    --strategy=ZigBuildLib=local
+common:debug    --strategy=ZigBuildObj=local
+common:debug    --strategy=ZigBuildTestLib=local
+
+# The coordinator is a BuildBuddy remote runner (`bb remote`).
+# Zig stays on that runner. C++ and XLA go to remote execution.
+common:buildbuddy --bes_results_url=https://app.buildbuddy.io/invocation/
+common:buildbuddy --bes_backend=grpcs://remote.buildbuddy.io
+common:buildbuddy --remote_cache=grpcs://remote.buildbuddy.io
+common:buildbuddy --experimental_remote_downloader=grpcs://remote.buildbuddy.io
+common:buildbuddy --remote_executor=grpcs://remote.buildbuddy.io
+common:buildbuddy --remote_timeout=3600
+common:buildbuddy --remote_cache_compression
+common:buildbuddy --rewind_lost_inputs
+common:buildbuddy --experimental_remote_downloader_local_fallback
+common:buildbuddy --grpc_keepalive_time=30s
+common:buildbuddy --jobs=80
+common:buildbuddy --extra_execution_platforms=@zml//:rbe_platform
+common:buildbuddy --experimental_repo_remote_exec=true
+common:buildbuddy --remote_upload_local_results
+common:buildbuddy --remote_download_minimal

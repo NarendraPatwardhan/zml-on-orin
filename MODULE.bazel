@@ -1,0 +1,40 @@
+module(name = "zml_on_arm64")
+
+# Direct because BUILD files or .bazelrc flags load these labels, or because
+# the root must select a newer module than the one ZML declares.
+bazel_dep(name = "rules_cc", version = "0.2.19")
+bazel_dep(name = "rules_python", version = "1.9.0")
+bazel_dep(name = "llvm", version = "0.8.9")
+bazel_dep(name = "rules_zig", version = "0.16.0")
+bazel_dep(name = "rules_rust", version = "0.74.0")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "zml")
+git_override(
+    module_name = "zml",
+    commit = "e1356ee4edbac0548d7d25ad6590841b5cd9293b",
+    remote = "https://github.com/zml/zml.git",
+)
+
+# Rust toolchain. This is the frontend, not ZML's tokenizer.
+# 1.98.0 is the default compiler in rules_rust 0.74.0.
+# The binary targets aarch64 and is linked on an x86_64 coordinator.
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(
+    edition = "2024",
+    versions = ["1.98.0"],
+)
+use_repo(rust, "rust_toolchains")
+
+register_toolchains("@rust_toolchains//:all")
+
+crate = use_extension("@rules_rust//crate_universe:extensions.bzl", "crate")
+crate.from_cargo(
+    name = "crates",
+    cargo_lockfile = "//:Cargo.lock",
+    manifests = ["//:Cargo.toml"],
+    supported_platform_triples = [
+        "aarch64-unknown-linux-gnu",
+        "x86_64-unknown-linux-gnu",
+    ],
+)
+use_repo(crate, "crates")
