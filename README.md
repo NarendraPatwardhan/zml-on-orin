@@ -14,13 +14,13 @@ XLA's default GPU allocator reserves 90% of device memory. On this board the GPU
 
 ## Build
 
-Commit, then:
+Push `master`. `buildbuddy.yaml` starts a BuildBuddy runner that executes:
 
 ```bash
-tools/build-arm64.sh
+bb build --config=buildbuddy --config=release //:zml_on_arm64
 ```
 
-That is `bb remote --os=linux --arch=arm64 build --config=buildbuddy --config=release //:zml_on_arm64`. The workstation does not run Bazel. The remote runner is the coordinator: Zig compiles there, and C++ and XLA compile on BuildBuddy executors. The target platform is `@zml//platforms:linux_arm64`.
+The workstation does not run Bazel. The runner is the coordinator: Zig compiles there, and C++ and XLA compile on BuildBuddy executors. `.bazelrc` sets the target platform to `@zml//platforms:linux_arm64`.
 
 ## Run
 

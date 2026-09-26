@@ -1,0 +1,22 @@
+# The BuildBuddy GitHub app runs this on a remote runner after a push.
+# The workstation does not run Bazel. `bb` on the runner is already
+# authenticated. `--config=buildbuddy` sends C++ and XLA to remote executors.
+# Zig stays on the runner. The target platform in .bazelrc is linux_arm64.
+
+actions:
+  - name: "arm64 CUDA matmul"
+    triggers:
+      push:
+        branches:
+          - "master"
+      pull_request:
+        branches:
+          - "*"
+    container_image: "ubuntu-22.04"
+    timeout: "3h"
+    resource_requests:
+      cpu: "16"
+      memory: "32GB"
+      disk: "80GB"
+    steps:
+      - run: "bb build --config=buildbuddy --config=release //:zml_on_arm64"
